@@ -1,0 +1,28 @@
+# Project docs (kept local)
+ARCHITECTURE.md
+CLAUDE.md
+PLAN.md
+
+# Data and artifacts
+data/raw/
+data/pl.duckdb
+data/pl.duckdb.wal
+data/serving/
+models/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Go
+go/bin/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
