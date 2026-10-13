@@ -21,6 +21,7 @@ __pycache__/
 
 # Go
 go/bin/
+go/plpred
 
 # OS / editor
 .DS_Store
