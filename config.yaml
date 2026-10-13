@@ -1,0 +1,41 @@
+# Shared config for Go and Python. All tunables live here, not in code.
+
+db:
+  path: data/pl.duckdb
+
+paths:
+  raw_dir: data/raw
+  team_names: data/mappings/team_names.csv
+  sql_dir: sql
+  models_dir: models
+
+seasons:
+  # Start year of each season: 2014 means 2014-15.
+  first: 2014
+  current: 2026
+
+sources:
+  footballdata:
+    # {code} becomes a 4-digit season code, e.g. 2014-15 -> "1415"
+    url_template: "https://www.football-data.co.uk/mmz4281/{code}/E0.csv"
+  clubelo:
+    # {date} is YYYY-MM-DD; returns every club's rating on that date
+    url_template: "http://api.clubelo.com/{date}"
+
+http:
+  timeout_seconds: 30
+  max_retries: 3
+  backoff_initial_ms: 500
+  rate_limit_ms: 1000      # wait between requests to the same host
+
+features:
+  rolling_windows: [5, 10]
+
+simulation:
+  iterations: 100000
+  workers: 8
+  seed: 42
+
+model:
+  current: null            # set once a model is promoted
+  walk_forward_test_seasons: 5
