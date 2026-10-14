@@ -6,7 +6,7 @@
 -- data/mappings/team_names.csv, so match_ids stay human-readable.
 CREATE TABLE IF NOT EXISTS teams (
     team_id VARCHAR PRIMARY KEY,
-    name    VARCHAR NOT NULL UNIQUE,
+    name    VARCHAR NOT NULL UNIQUE
 );
 
 -- Played matches. One row per match.
