@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/kentongelis/match_predictor/go/internal/config"
-    "github.com/kentongelis/match_predictor/go/internal/db"
+	"github.com/kentongelis/match_predictor/go/internal/db"
+	"github.com/kentongelis/match_predictor/go/internal/ingest"
 )
 
 var errNotImplemented = errors.New("not implemented yet")
@@ -33,7 +35,7 @@ func newRootCmd() *cobra.Command {
 
 	root.AddCommand(
 		newMigrateCmd(),
-		stubCmd("ingest", "Fetch raw data into data/raw/"),
+		newIngestCmd(),
 		stubCmd("clean", "Normalize raw data and load matches, elo, fixtures"),
 		stubCmd("features", "Run sql/features/*.sql to rebuild the features table"),
 		stubCmd("simulate", "Monte Carlo simulation of the remaining season"),
@@ -44,7 +46,7 @@ func newRootCmd() *cobra.Command {
 
 func newMigrateCmd() *cobra.Command {
 	return &cobra.Command{
-		Use: "migrate",
+		Use:   "migrate",
 		Short: "Create or update the DuckDB schema",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfgPath, err := cmd.Flags().GetString("config")
@@ -69,6 +71,35 @@ func newMigrateCmd() *cobra.Command {
 			}
 
 			fmt.Fprintf(cmd.OutOrStdout(), "schema applied to %s\n", cfg.DB.Path)
+			return nil
+		},
+	}
+}
+
+func newIngestCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "ingest",
+		Short: "Fetch raw data into data/raw/",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfgPath, err := cmd.Flags().GetString("config")
+			if err != nil {
+				return err
+			}
+			cfg, err := config.Load(cfgPath)
+			if err != nil {
+				return fmt.Errorf("ingest: %w", err)
+			}
+
+			out := cmd.OutOrStdout()
+			fd := ingest.NewFootbalData(cfg)
+			paths, err := fd.Download(cmd.Context(), cfg.Seasons.All(), time.Now())
+			for _, p := range paths {
+				fmt.Fprintf(out, "wrote %s\n", p)
+			}
+			if err != nil {
+				return fmt.Errorf("ingest: %w", err)
+			}
+			fmt.Fprintf(out, "footballdata: %d new file(s)\n", len(paths))
 			return nil
 		},
 	}
