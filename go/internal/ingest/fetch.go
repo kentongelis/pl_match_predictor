@@ -31,7 +31,7 @@ func newFetcher(cfg config.HTTP) *Fetcher {
 	return &Fetcher{
 		client: &http.Client{Timeout: time.Duration(cfg.TimeoutSeconds) * time.Second},
 		maxRetries: cfg.MaxRetries,
-		backoff: time.Duration(cfg.BackoffIntialMS) * time.Millisecond,
+		backoff: time.Duration(cfg.BackoffInitialMS) * time.Millisecond,
 		rateLimit: time.Duration(cfg.RateLimitMS) * time.Millisecond,
 	}
 }
@@ -80,8 +80,13 @@ func (f *Fetcher) do(ctx context.Context, url string) (body []byte, retry bool, 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		retry := res.StatusCode == http.StatusTooManyRequests || res.StatusCode >= 500
-		return nil, true, fmt.Errorf("read body %s: %w", url, err)
+			retry := resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500
+			return nil, retry, fmt.Errorf("get %s: status %d", url, resp.StatusCode)
+	}
+
+	body, err = io.ReadAll(resp.Body)
+	if err != nil {
+			return nil, true, fmt.Errorf("read body %s: %w", url, err)
 	}
 	return body, false, nil
 }
@@ -91,7 +96,7 @@ func (f *Fetcher) wait(ctx context.Context) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	if d := f,rateLimit - time.Since(f.last); d > 0 {
+	if d := f.rateLimit - time.Since(f.last); d > 0 {
 		if err := sleep(ctx, d); err != nil {
 			return err
 		}
@@ -105,9 +110,9 @@ func sleep(ctx context.Context, d time.Duration) error {
 	t := time.NewTimer(d)
 	defer t.Stop()
 	select {
-	case <-ctx.Done();
+	case <-ctx.Done():
 		return ctx.Err()
-	case <-t.c:
+	case <-t.C:
 		return nil
 	}
 }
