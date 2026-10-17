@@ -18,8 +18,8 @@ func TestSeasonCode(t *testing.T) {
 		2099: "9900", // century rollover
 	}
 	for start, want := range cases {
-		if got := seasonCode(start); got != want {
-			t.Errorf("seasonCode(%d) = %q, want %q", start, got, want)
+		if got := SeasonCode(start); got != want {
+			t.Errorf("SeasonCode(%d) = %q, want %q", start, got, want)
 		}
 	}
 }

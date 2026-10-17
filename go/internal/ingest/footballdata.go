@@ -38,7 +38,7 @@ func (fd *FootballData) Download(ctx context.Context, seasons []int, day time.Ti
 
 	var written []string
 	for _, season := range seasons {
-		code := seasonCode(season)
+		code := SeasonCode(season)
 		path := filepath.Join(dir, code+".csv")
 
 		if _, err := os.Stat(path); err == nil {
@@ -58,8 +58,8 @@ func (fd *FootballData) Download(ctx context.Context, seasons []int, day time.Ti
 	return written, nil
 }
 
-// seasonCode turns a start year into football-data's code: 2014 -> "1415"
-func seasonCode(start int) string {
+// SeasonCode turns a start year into football-data's code: 2014 -> "1415"
+func SeasonCode(start int) string {
 	return fmt.Sprintf("%02d%02d", start%100, (start+1)%100)
 }
 
