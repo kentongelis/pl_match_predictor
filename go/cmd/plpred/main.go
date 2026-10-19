@@ -101,6 +101,16 @@ func newIngestCmd() *cobra.Command {
 				return fmt.Errorf("ingest: %w", err)
 			}
 			fmt.Fprintf(out, "footballdata: %d new file(s)\n", len(paths))
+
+			ce := ingest.NewClubElo(cfg)
+			paths, err = ce.Download(cmd.Context(), time.Now())
+			for _, p := range paths {
+				fmt.Fprintf(out, "wrote %s\n", p)
+			}
+			if err != nil {
+				return fmt.Errorf("ingest: %w", err)
+			}
+			fmt.Fprintf(out, "clubelo: %d new file(s)\n", len(paths))
 			return nil
 		},
 	}

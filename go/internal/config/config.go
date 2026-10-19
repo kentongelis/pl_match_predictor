@@ -43,11 +43,17 @@ type Seasons struct {
 
 type Sources struct {
 	FootballData Source `yaml:"footballdata"`
-	ClubElo      Source `yaml:"clubelo"`
+	ClubElo      ClubEloSource `yaml:"clubelo"`
 }
 
 type Source struct {
 	URLTemplate string `yaml:"url_template"`
+}
+
+// ClubEloSource is fetcher per club, so it also lists which clubs to fetch
+type ClubEloSource struct {
+	URLTemplate string `yaml:"url_template"`
+	Clubs []string `yaml:"clubs"` // ClubElo URL names, e.g. "ManCity"
 }
 
 type HTTP struct {
@@ -132,6 +138,9 @@ func (c *Config) validate() error {
 		if w <= 0 {
 			errs = append(errs, fmt.Errorf("features.rolling_windows: %d is not positive", w))
 		}
+	}
+	if len(c.Sources.ClubElo.Clubs) == 0 {
+		errs = append(errs, errors.New("sources.clubelo.clubs must not be empty"))
 	}
 
 	return errors.Join(errs...) // nil when errs is empty
