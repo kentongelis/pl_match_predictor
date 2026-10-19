@@ -19,8 +19,17 @@ sources:
     # {code} becomes a 4-digit season code, e.g. 2014-15 -> "1415"
     url_template: "https://www.football-data.co.uk/mmz4281/{code}/E0.csv"
   clubelo:
-    # {date} is YYYY-MM-DD; returns every club's rating on that date
-    url_template: "http://api.clubelo.com/{date}"
+    # {club} is ClubElo's URL name; each call returns that club's full rating history
+    url_template: "http://api.clubelo.com/{club}"
+    # Every club in the league since seasons.first. Add promoted clubs here.
+    clubs: [
+      Arsenal, AstonVilla, Bournemouth, Brentford, Brighton, Burnley, Cardiff,
+      Chelsea, Coventry, CrystalPalace, Everton, Fulham, Huddersfield, Hull,
+      Ipswich, Leeds, Leicester, Liverpool, Luton, ManCity, ManUnited,
+      Middlesbrough, Newcastle, Norwich, Forest, QPR, SheffieldUnited,
+      Southampton, Stoke, Sunderland, Swansea, Tottenham, Watford, WestBrom,
+      WestHam, Wolves,
+    ]
 
 http:
   timeout_seconds: 30
