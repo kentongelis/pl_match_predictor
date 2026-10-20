@@ -12,8 +12,8 @@ import (
 	"github.com/kentongelis/match_predictor/go/internal/config"
 )
 
-// clubEloHeader is the first line of every ClubElo history CSV
-const clubEloHeader = "Rank,Club,Country,Level,Elo,From,To"
+// ClubEloHeader is the first line of every ClubElo history CSV
+const ClubEloHeader = "Rank,Club,Country,Level,Elo,From,To"
 
 // ClubElo downloads each club's full Elo history from api.clubelo.com
 type ClubElo struct {
@@ -68,8 +68,8 @@ func (ce *ClubElo) Download(ctx context.Context, day time.Time) ([]string, error
 // header, so without this a typo in config.yaml would silently save an empty file
 func checkClubElo(body []byte) error {
 	header, rest, _ := bytes.Cut(body, []byte("\n"))
-	if got := strings.TrimSpace(string(header)); got != clubEloHeader {
-		return fmt.Errorf("unexpected header %q, want %q", got, clubEloHeader)
+	if got := strings.TrimSpace(string(header)); got != ClubEloHeader {
+		return fmt.Errorf("unexpected header %q, want %q", got, ClubEloHeader)
 	}
 	if len(bytes.TrimSpace(rest)) == 0 {
 		return fmt.Errorf("no ratings returned; is the club name right in config.yaml?")

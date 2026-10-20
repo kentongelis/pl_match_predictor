@@ -151,6 +151,13 @@ func newCleanCmd() *cobra.Command {
 				return fmt.Errorf("clean matches: %w", err)
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "footballdata: loaded %d matches from %s\n", n, dir)
+			// Elo before the first season's opening day is never needed, so older history isn't loaded
+			since := time.Date(cfg.Seasons.First, time.January, 1, 0, 0, 0, 0, time.UTC)
+			n, err = clean.LoadClubElo(ctx, conn, cfg.Paths.RawDir, cfg.Sources.ClubElo.Clubs, teams, since)
+			if err != nil {
+				return fmt.Errorf("clean elo: %w", err)
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "clubelo: loaded %d ratings\n", n)
 			return nil
 		},
 	}
