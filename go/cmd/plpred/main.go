@@ -9,10 +9,11 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/kentongelis/match_predictor/go/internal/clean"
 	"github.com/kentongelis/match_predictor/go/internal/config"
 	"github.com/kentongelis/match_predictor/go/internal/db"
+	"github.com/kentongelis/match_predictor/go/internal/features"
 	"github.com/kentongelis/match_predictor/go/internal/ingest"
-	"github.com/kentongelis/match_predictor/go/internal/clean"
 )
 
 var errNotImplemented = errors.New("not implemented yet")
@@ -38,7 +39,7 @@ func newRootCmd() *cobra.Command {
 		newMigrateCmd(),
 		newIngestCmd(),
 		newCleanCmd(),
-		stubCmd("features", "Run sql/features/*.sql to rebuild the features table"),
+		newFeaturesCmd(),
 		stubCmd("simulate", "Monte Carlo simulation of the remaining season"),
 		stubCmd("run", "Full weekly pipeline: ingest, clean, features, predict, simulate"),
 	)
@@ -118,7 +119,7 @@ func newIngestCmd() *cobra.Command {
 
 func newCleanCmd() *cobra.Command {
 	return &cobra.Command{
-		Use: "clean",
+		Use:   "clean",
 		Short: "Normalize raw data and load it into DuckDB",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfgPath, err := cmd.Flags().GetString("config")
@@ -158,6 +159,45 @@ func newCleanCmd() *cobra.Command {
 				return fmt.Errorf("clean elo: %w", err)
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "clubelo: loaded %d ratings\n", n)
+			return nil
+		},
+	}
+}
+
+func newFeaturesCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "features",
+		Short: "Run sql/features/*.sql to rebuild the features table",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfgPath, err := cmd.Flags().GetString("config")
+			if err != nil {
+				return err
+			}
+			cfg, err := config.Load(cfgPath)
+			if err != nil {
+				return fmt.Errorf("features: %w", err)
+			}
+
+			ctx := cmd.Context()
+			conn, err := db.Open(ctx, cfg.DB.Path)
+			if err != nil {
+				return fmt.Errorf("features: %w", err)
+			}
+			defer conn.Close() // one write at a time
+
+			ran, err := features.Run(ctx, conn, filepath.Join(cfg.Paths.SQLDir, "features"))
+			if err != nil {
+				return fmt.Errorf("features: %w", err)
+			}
+			for _, name := range ran {
+				fmt.Fprintf(cmd.OutOrStdout(), "ran %s\n", name)
+			}
+
+			var n int
+			if err := conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM features`).Scan(&n); err != nil {
+				return fmt.Errorf("features: count rows: %w", err)
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "features: %d rows\n", n)
 			return nil
 		},
 	}
