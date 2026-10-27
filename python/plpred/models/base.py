@@ -17,7 +17,7 @@ class MatchModel(Protocol):
         """Return an (n, 3) array ordered [H, D, A], each row summing to 1."""
         ...
 
-def encode_result(results: pd.Series) -> np.darray:
+def encode_result(results: pd.Series) -> np.ndarray:
     """Map 'H'/'D'/'A' labels to 0/1/2 so they index the probability columns. """
     mapping = {o: i for i, o in enumerate(OUTCOMES)}
     encoded = results.map(mapping)

@@ -9,7 +9,7 @@ data/raw/
 data/pl.duckdb
 data/pl.duckdb.wal
 data/serving/
-models/
+/models/
 
 # Python
 venv/
