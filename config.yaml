@@ -40,6 +40,14 @@ http:
 features:
   rolling_windows: [5, 10]
 
+elo:
+  initial: 1500 # every team's rating on day one, and the league mean
+  k: 20 # how far one result moves the ratings
+  home_advantage: 60 # rating points added to the home side
+  season_regression: 0.2 # share of each team's gap to `initial` removed every summer
+  goal_margin: true
+
+
 simulation:
   iterations: 100000
   workers: 8
