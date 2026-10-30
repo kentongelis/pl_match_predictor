@@ -48,3 +48,20 @@ func TestLoadRejectsFirstAfterCurrent(t *testing.T) {
 		t.Fatalf("expected seasons.first error, got %v", err)
 	}
 }
+
+func TestLoadRejectsBadElo(t *testing.T) {
+        cases := map[string]string{
+                "elo.k":                 "elo:\n initial: 1500\n k: 0\n",
+                "elo.initial":           "elo:\n initial: -1\n k: 20\n",
+                "elo.home_advantage":    "elo:\n initial: 1500\n k: 20\n home_advantage: -5\n",
+                "elo.season_regression": "elo:\n initial: 1500\n k: 20\n season_regression: 1.5\n",
+        }
+        for want, body := range cases {
+                t.Run(want, func(t *testing.T) {
+                        _, err := Load(writeConfig(t, body))
+                        if err == nil || !strings.Contains(err.Error(), want) {
+                                t.Fatalf("expected %s error, got %v", want, err)
+                        }
+                })
+        }
+}
