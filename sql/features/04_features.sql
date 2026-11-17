@@ -1,6 +1,5 @@
 -- 04_features.sql: final wide table, one rwo per match (played or upcoming). This is what Python reads
 -- A real Table that's rebuilt from scratch every run (CREATE OR REPLACE keeps it idempotent)
--- Elo columns join in here once 03_elo_asof.sql exists
 
 CREATE OR REPLACE TABLE features AS
 WITH seasons AS (
@@ -16,11 +15,13 @@ team_seasons AS (
 side AS (
     -- One row per team per match: its form plus whether it came up this season
     SELECT f.*,
-           CASE WHEN s.season_idx = 1 THEN NULL          -- no earlier season in the data to compare with
+            te.elo,
+            CASE WHEN s.season_idx = 1 THEN NULL          -- no earlier season in the data to compare with
                 ELSE prev.team_id IS NULL                -- no match last season means promoted
-           END AS is_promoted
+            END AS is_promoted
     FROM team_form f
     JOIN team_match tm USING (match_id, team_id)
+    JOIN team_elo te USING (match_id, team_id)
     JOIN seasons s USING (season)
     LEFT JOIN team_seasons prev
            ON prev.team_id = f.team_id AND prev.season_idx = s.season_idx - 1
@@ -54,6 +55,7 @@ SELECT games.*,
        home_venue_gf_l5 - away_venue_gf_l5 AS diff_venue_gf_l5,
        home_venue_ga_l5 - away_venue_ga_l5 AS diff_venue_ga_l5,
        home_rest_days - away_rest_days AS diff_rest_days,
+       home_elo - away_elo AS diff_elo,
        m.result                                          -- the label. NULL for upcoming fixtures
 FROM games
 JOIN home USING (match_id)

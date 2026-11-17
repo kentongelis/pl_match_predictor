@@ -66,6 +66,18 @@ func TestFeatureSQL(t *testing.T) {
 		{"features away_pts_l5", featCol("away_pts_l5"), args("2020-21_2020-09-12_ars_b"), f(0.0)},
 		{"features diff_pts_l5", featCol("diff_pts_l5"), args("2020-21_2020-09-12_ars_b"), f(1.0)},
 
+		// Elo: match 1 is on 2020-08-01, so it must get the 07-31 rating (1500), not that day's 1512
+		{"match 1 home_elo ignores same-day row", featCol("home_elo"), args("2020-21_2020-08-01_ars_b"), f(1500)},
+		{"match 1 diff_elo", featCol("diff_elo"), args("2020-21_2020-08-01_ars_b"), f(0)},
+		// Match 2 (08-08): ars gets the rating after match 1 (1512), not after match 2 (1508)
+		{"match 2 away_elo", featCol("away_elo"), args("2020-21_2020-08-08_c_ars"), f(1512)},
+		// c has no elo rows, so its Elo is NULL but the match is still in features
+		{"match 2 home_elo is NULL", featCol("home_elo"), args("2020-21_2020-08-08_c_ars"), nil},
+		// Match 4 (08-22): b's latest is 1488, ars's latest is 1495, so 1488 - 1495
+		{"match 4 diff_elo", featCol("diff_elo"), args("2020-21_2020-08-22_b_ars"), f(-7)},
+		// The fixture picks up ars's latest rating like any match
+		{"fixture away_elo", featCol("away_elo"), args("2020-21_2020-09-19_c_ars"), f(1495)},
+
 		// Upcoming fixture: c drew 1-1 at home and won 2-0 away, so (1+3)/2. It gets features like any match
 		{"fixture home_pts_l5", featCol("home_pts_l5"), args("2020-21_2020-09-19_c_ars"), f(2.0)},
 	}

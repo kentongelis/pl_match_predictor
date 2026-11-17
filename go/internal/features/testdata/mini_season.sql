@@ -24,3 +24,14 @@ INSERT INTO matches (match_id, season, date, home_team_id, away_team_id, home_go
 
 INSERT INTO fixtures (match_id, season, date, home_team_id, away_team_id) VALUES
     ('2020-21_2020-09-19_c_ars', '2020-21', '2020-09-19', 'c', 'ars');
+
+-- Hand-made Elo rows (not from ComputeElo: this test the join, not the maths). Like the real table, a row 
+-- dated on match day holds the rating AFTER the match, so a match must never see its own day's row.
+-- c has no rows at all, to check that a team without a rating still keeps its match (as NULL Elo)
+INSERT INTO elo (team_id, date_from, date_to, elo) VALUES
+    ('ars', '2020-07-31', '2020-07-31', 1500),   -- start of season
+    ('ars', '2020-08-01', '2020-08-07', 1512),   -- after match 1
+    ('ars', '2020-08-08', '2020-08-11', 1508),   -- after match 2
+    ('ars', '2020-08-12', '9999-12-31', 1495),   -- after match 3, latest
+    ('b',   '2020-07-31', '2020-07-31', 1500),
+    ('b',   '2020-08-01', '9999-12-31', 1488);
