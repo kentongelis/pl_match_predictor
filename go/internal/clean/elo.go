@@ -50,7 +50,7 @@ func LoadElo(ctx context.Context, conn *sql.DB, p config.Elo) (int, error) {
 	return len(ratings), nil
 }
 
-// readMatches loads the column ComputeElo needs. ComputeElo sorrts its input itself, so no ORDER BY
+// readMatches loads the column ComputeElo needs. ComputeElo sorts its input itself, so no ORDER BY
 func readMatches(ctx context.Context, tx *sql.Tx) ([]Match, error) {
 	rows, err := tx.QueryContext(ctx, `
 		SELECT match_id, season, date, home_team_id, away_team_id, home_goals, away_goals FROM matches`)
@@ -64,15 +64,15 @@ func readMatches(ctx context.Context, tx *sql.Tx) ([]Match, error) {
 		var m Match
 		if err := rows.Scan(&m.ID, &m.Season, &m.Date, &m.HomeTeamID, &m.AwayTeamID,
 			&m.HomeGoals, &m.AwayGoals); err != nil {
-			return nil, fmt.Errorf("scan match: %w", err)	
-			}
-			matches = append(matches, m)
+			return nil, fmt.Errorf("scan match: %w", err)
+		}
+		matches = append(matches, m)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("read matches: %w", err)
 	}
 	if len(matches) == 0 {
-		return nil, fmt.Errorf("matches table is empty (load football-date first)")
+		return nil, fmt.Errorf("matches table is empty (load football-data first)")
 	}
 	return matches, nil
 }
