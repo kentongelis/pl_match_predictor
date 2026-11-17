@@ -95,7 +95,7 @@ def main() -> None:
     for make_model in (BaseRate, Bookmaker):
         table = walk_forward(make_model, df, seasons)
         print(f"\n== {make_model.name} ==")
-        print(table.to_string(index=False, float_format="{:.4f}.format"))
+        print(table.to_string(index=False, float_format="{:.4f}".format))
 
 if __name__ == "__main__":
     main()
