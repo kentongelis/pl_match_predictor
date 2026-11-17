@@ -17,14 +17,14 @@ var ErrUnknownTeam = errors.New("unknown team name")
 
 // Team is a canonical club. ID is the slug used in match_ids; Name is for display
 type Team struct {
-	ID string
+	ID   string
 	Name string
 }
 
 // TeamMap resolves each source's spelling ("Man City, "Nott'm Forrest") to one canonical Team
 type TeamMap struct {
 	byAlias map[string]Team
-	byID map[string]Team
+	byID    map[string]Team
 }
 
 // LoadTeamMap reads team_names.csv, whose columns are alias,team_id,name
@@ -74,7 +74,7 @@ func parseTeamMap(r io.Reader) (*TeamMap, error) {
 			return nil, fmt.Errorf("line %d: empty field", line)
 		}
 		if _, dup := m.byAlias[alias]; dup {
-			return nil, fmt.Errorf("line %d: alias %q is listed twice", line, alias)		
+			return nil, fmt.Errorf("line %d: alias %q is listed twice", line, alias)
 		}
 		if t, ok := m.byID[id]; ok && t.Name != name {
 			return nil, fmt.Errorf("line %d: team_id %q has two name, %q and %q", line, id, t.Name, name)
@@ -106,6 +106,6 @@ func (m *TeamMap) Teams() []Team {
 	for _, t := range m.byID {
 		teams = append(teams, t)
 	}
-	sort.Slice(teams, func(i, j int) bool { return teams[i].ID < teams[j].ID})
+	sort.Slice(teams, func(i, j int) bool { return teams[i].ID < teams[j].ID })
 	return teams
 }

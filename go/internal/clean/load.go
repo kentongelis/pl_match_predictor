@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/kentongelis/match_predictor/go/internal/ingest"
-
 )
 
 // LoadFootballData parses every season's CSV from the newest football-data download and upserts teams and matches
@@ -64,7 +63,7 @@ func parseSeasonFile(path string, season int, teams *TeamMap) ([]Match, error) {
 	return ParseFootballData(f, season, teams)
 }
 
-// latestDir returns the newest YYYY-MM-DD subdirectory of dir. Ingest writes one folder per day and never changes 
+// latestDir returns the newest YYYY-MM-DD subdirectory of dir. Ingest writes one folder per day and never changes
 // old ones, so the newest folder holds the most recent copy of every season
 func latestDir(dir string) (string, error) {
 	entries, err := os.ReadDir(dir)
@@ -80,9 +79,9 @@ func latestDir(dir string) (string, error) {
 			continue // not a download folder
 		}
 		if e.Name() > latest { // ISO dates sort correctly as strings
-			latest = e.Name()	
+			latest = e.Name()
 		}
-	} 
+	}
 	if latest == "" {
 		return "", fmt.Errorf("no dated download folders in %s (run plpred ingest first)", dir)
 	}
@@ -138,7 +137,7 @@ func upsertMatches(ctx context.Context, tx *sql.Tx, matches []Match) error {
 			m.HomeGoals, m.AwayGoals, m.Result,
 			m.HomeShots, m.AwayShots, m.HomeSOT, m.AwaySOT,
 			m.HomeXG, m.AwayXG, m.OddsH, m.OddsD, m.OddsA,
-        )
+		)
 		if err != nil {
 			return fmt.Errorf("upsert match %s: %w", m.ID, err)
 		}

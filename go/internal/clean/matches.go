@@ -14,26 +14,26 @@ import (
 
 // Match is one played game, shaped like a row of the matches table.
 type Match struct {
-	ID	string // {season}_{date}_{home}_{away}
-	Season string // "2014-15"
-	Date time.Time
-	HomeTeamID	string
-	AwayTeamID	string
-	HomeGoals	int
-	AwayGoals	int
-	Result	string // "H", "D" or "A"
-	HomeShots *int
-	AwayShots *int
-	HomeSOT *int
-	AwaySOT *int
-	HomeXG *float64
-	AwayXG *float64
-	OddsH *float64
-	OddsD *float64
-	OddsA *float64
+	ID         string // {season}_{date}_{home}_{away}
+	Season     string // "2014-15"
+	Date       time.Time
+	HomeTeamID string
+	AwayTeamID string
+	HomeGoals  int
+	AwayGoals  int
+	Result     string // "H", "D" or "A"
+	HomeShots  *int
+	AwayShots  *int
+	HomeSOT    *int
+	AwaySOT    *int
+	HomeXG     *float64
+	AwayXG     *float64
+	OddsH      *float64
+	OddsD      *float64
+	OddsA      *float64
 }
 
-// closingOdds list football-data's closing-odds columns, best first. 
+// closingOdds list football-data's closing-odds columns, best first.
 // Uses Pinnacle because it's the sharpest but falls back to market average due to missing recent seasons
 var closingOdds = [][3]string{
 	{"PSCH", "PSCD", "PSCA"},
@@ -46,11 +46,11 @@ var utf8BOM = []byte{0xEF, 0xBB, 0xBF}
 
 // SeasonLabel turns a start year into the label stored in the database: 2014 -> "2014-15"
 func SeasonLabel(start int) string {
-        return fmt.Sprintf("%d-%02d", start, (start+1)%100)
+	return fmt.Sprintf("%d-%02d", start, (start+1)%100)
 }
 
-// ParseFootballData reads one football-data.co.uk season CSV. Columns are found by header name because thier 
-// positions change between seasons. It checks every row and reports all bad rows together, so one run shows 
+// ParseFootballData reads one football-data.co.uk season CSV. Columns are found by header name because thier
+// positions change between seasons. It checks every row and reports all bad rows together, so one run shows
 // every unmapped team name
 func ParseFootballData(r io.Reader, season int, teams *TeamMap) ([]Match, error) {
 	br := bufio.NewReader(r)
@@ -116,19 +116,19 @@ func parseMatch(row *rowReader, season string, teams *TeamMap) (Match, error) {
 	}
 
 	m := Match{
-		Season: season,
-		Date: row.date("Date"),
+		Season:     season,
+		Date:       row.date("Date"),
 		HomeTeamID: home.ID,
 		AwayTeamID: away.ID,
-		HomeGoals: row.int("FTHG"),
-		AwayGoals: row.int("FTAG"),
-		Result: row.str("FTR"),
-		HomeShots: row.optInt("HS"),
-		AwayShots: row.optInt("AS"),
-		HomeSOT: row.optInt("HST"),
-		AwaySOT: row.optInt("AST"),
-		HomeXG: row.optFloat("HxG"),
-		AwayXG: row.optFloat("AxG"),
+		HomeGoals:  row.int("FTHG"),
+		AwayGoals:  row.int("FTAG"),
+		Result:     row.str("FTR"),
+		HomeShots:  row.optInt("HS"),
+		AwayShots:  row.optInt("AS"),
+		HomeSOT:    row.optInt("HST"),
+		AwaySOT:    row.optInt("AST"),
+		HomeXG:     row.optFloat("HxG"),
+		AwayXG:     row.optFloat("AxG"),
 	}
 	for _, cols := range closingOdds {
 		if m.OddsH, m.OddsD, m.OddsA = row.odds(cols); m.OddsH != nil {
@@ -157,7 +157,7 @@ func resultFor(homeGoals, awayGoals int) string {
 	}
 }
 
-// rowReader reads typed values from one CSV record by column name. The first pause failure is saved in err 
+// rowReader reads typed values from one CSV record by column name. The first pause failure is saved in err
 // and later calls return zero values, so parseMatch can read every field and check for an error once at the end
 type rowReader struct {
 	rec []string

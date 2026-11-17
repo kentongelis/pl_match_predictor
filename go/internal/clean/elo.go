@@ -18,10 +18,10 @@ import (
 
 // EloRating is one row of the elo table: the club's rating from DateFrom through DateTo
 type EloRating struct {
-	TeamID string
+	TeamID   string
 	DateFrom time.Time
-	DateTo time.Time
-	Elo float64
+	DateTo   time.Time
+	Elo      float64
 }
 
 // ParseClubElo reads one club's ClubElo history CSV. Rows that ended before since are dropped, because the first
@@ -84,7 +84,7 @@ func ParseClubElo(r io.Reader, teams *TeamMap, since time.Time) ([]EloRating, er
 	if len(ratings) == 0 {
 		return nil, fmt.Errorf("no ratings on or after %s", since.Format("2006-01-02"))
 	}
-	return ratings, nil 
+	return ratings, nil
 }
 
 // LoadClubElo parse the newest download of every club and upserts all of them into elo in one transaction. Like
