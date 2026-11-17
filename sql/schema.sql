@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS fixtures (
     CHECK (home_team_id <> away_team_id)
 );
 
--- ClubElo ratings as validity ranges: the rating holds from date_from to date_to.
+-- Elo ratings as validity ranges: the rating holds from date_from to date_to.
 CREATE TABLE IF NOT EXISTS elo (
     team_id VARCHAR NOT NULL,
     date_from DATE NOT NULL,

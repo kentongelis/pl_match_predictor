@@ -44,17 +44,10 @@ type Seasons struct {
 
 type Sources struct {
 	FootballData Source `yaml:"footballdata"`
-	ClubElo      ClubEloSource `yaml:"clubelo"`
 }
 
 type Source struct {
 	URLTemplate string `yaml:"url_template"`
-}
-
-// ClubEloSource is fetcher per club, so it also lists which clubs to fetch
-type ClubEloSource struct {
-	URLTemplate string `yaml:"url_template"`
-	Clubs []string `yaml:"clubs"` // ClubElo URL names, e.g. "ManCity"
 }
 
 type HTTP struct {
@@ -160,10 +153,6 @@ func (c *Config) validate() error {
 	if c.Elo.SeasonRegression < 0 || c.Elo.SeasonRegression > 1 {
 		errs = append(errs, fmt.Errorf("elo.season_regression (%g) must be between 0 and 1", c.Elo.SeasonRegression))
 	}
-	if len(c.Sources.ClubElo.Clubs) == 0 {
-		errs = append(errs, errors.New("sources.clubelo.clubs must not be empty"))
-	}
-
 	return errors.Join(errs...) // nil when errs is empty
 }
 

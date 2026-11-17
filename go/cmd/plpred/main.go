@@ -102,16 +102,6 @@ func newIngestCmd() *cobra.Command {
 				return fmt.Errorf("ingest: %w", err)
 			}
 			fmt.Fprintf(out, "footballdata: %d new file(s)\n", len(paths))
-
-			ce := ingest.NewClubElo(cfg)
-			paths, err = ce.Download(cmd.Context(), time.Now())
-			for _, p := range paths {
-				fmt.Fprintf(out, "wrote %s\n", p)
-			}
-			if err != nil {
-				return fmt.Errorf("ingest: %w", err)
-			}
-			fmt.Fprintf(out, "clubelo: %d new file(s)\n", len(paths))
 			return nil
 		},
 	}
@@ -152,13 +142,12 @@ func newCleanCmd() *cobra.Command {
 				return fmt.Errorf("clean matches: %w", err)
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "footballdata: loaded %d matches from %s\n", n, dir)
-			// Elo before the first season's opening day is never needed, so older history isn't loaded
-			since := time.Date(cfg.Seasons.First, time.January, 1, 0, 0, 0, 0, time.UTC)
-			n, err = clean.LoadClubElo(ctx, conn, cfg.Paths.RawDir, cfg.Sources.ClubElo.Clubs, teams, since)
+			// Elo is computed from the matches just loaded, so it must run after them
+			n, err = clean.LoadElo(ctx, conn, cfg.Elo)
 			if err != nil {
 				return fmt.Errorf("clean elo: %w", err)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "clubelo: loaded %d ratings\n", n)
+			fmt.Fprintf(cmd.OutOrStdout(), "elo: computed %d ratings\n", n)
 			return nil
 		},
 	}
