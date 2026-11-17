@@ -4,7 +4,7 @@ Predicts **home / draw / away probabilities** for Premier League fixtures and si
 
 The goal is calibrated probabilities, not just a "pick" for each match. Models are judged by **Ranked Probability Score (RPS)** with walk-forward validation by season, and compared against the bookmakers' implied probabilities.
 
-> **Status:** work in progress. The data pipeline (ingest → clean → features) works for match data, and Elo ratings are computed from those matches. The Python evaluation foundation (metrics, baselines, walk-forward) is done. The Elo feature, the first real model, prediction and simulation are next. See [Roadmap](#roadmap).
+> **Status:** work in progress. The data pipeline (ingest → clean → features) works for match data, and Elo ratings are computed from those matches. Features include rolling form and pre-match Elo, guarded by a leakage test. The Python evaluation foundation (metrics, baselines, walk-forward) is done. The first real model (logistic regression), prediction and simulation are next. See [Roadmap](#roadmap).
 
 ---
 
@@ -58,8 +58,10 @@ The project is split across three languages. A single DuckDB file is the only in
 - **SQL features:**
   - `01_team_match.sql` gives one row per team per match.
   - `02_rolling_form.sql` computes pre-match rolling form over the last 5 and 10 matches: points, goals, shots and shots on target, for and against. It also computes venue-specific form and rest days.
-  - `04_features.sql` builds one row per match with home and away features side by side.
-- **Tests:** Go unit tests cover config, DB migration, the fetcher, team mapping, the parsers (on saved sample files in `testdata/`, not live HTTP), the loaders and features. A hand-built mini season checks the rolling SQL features against known values.
+  - `03_elo_asof.sql` attaches each team's Elo rating from strictly before the match date, using an `ASOF JOIN`.
+  - `04_features.sql` builds one row per match with home and away features side by side, plus home-minus-away differences such as `diff_elo`.
+- **Tests:** Go unit tests cover config, DB migration, the fetcher, team mapping, the parsers (on saved sample files in `testdata/`, not live HTTP), Elo computation, the loaders and features. A hand-built mini season checks the rolling and Elo SQL features against known values. Python tests cover the metrics, baselines and walk-forward loop.
+- **Leakage test** (`python/tests/test_leakage.py`): for 73 sampled matches, it rebuilds the features using only data from before the match date and checks that every feature column matches the real table. `TestComputeEloNoLookahead` in Go checks that no Elo rating depends on later matches.
 - **Python:** the `plpred` package with config and read-only DB access, the `MatchModel` interface, metrics (RPS, log loss, Brier, accuracy), the `BaseRate` and `Bookmaker` baselines, and walk-forward evaluation by season.
 
 ### Elo
@@ -74,7 +76,6 @@ Elo ratings are computed in Go during `clean` (`go/internal/clean/compute_elo.go
 
 ### Known gaps
 
-- **The Elo feature isn't built yet.** The `elo` table is filled, but `03_elo_asof.sql` (the strict as-of join) and the `home_elo` / `away_elo` / `elo_diff` columns in `features` are still to come, along with an Elo case in the leakage test.
 - `simulate` and `run` are placeholder commands for now.
 
 ---
@@ -85,7 +86,7 @@ Elo ratings are computed in Go during `clean` (`go/internal/clean/compute_elo.go
 |---|---|---|
 | 0–1 | Repo setup, config, schema, CLI skeleton, DB layer | ✅ |
 | 2 | Ingest and clean match data; compute Elo from matches (replaces Club Elo) | ✅ |
-| 3 | SQL features (rolling form, Elo as of match date) | ✅ Elo feature in progress |
+| 3 | SQL features (rolling form, Elo as of match date) | ✅ |
 | 4 | Python foundation: DB access, `MatchModel` interface, metrics (RPS, log loss, Brier, accuracy), walk-forward evaluation, `BaseRate` and `Bookmaker` baselines | ✅ |
 | 5 | Multinomial logistic model and training pipeline. Each run is logged to `model_runs` and versioned under `models/` with `meta.json` | Planned |
 | 6 | Live loop: fixtures ingestion, `predict` for the next matchweek, and `plpred run` for the whole weekly pipeline | Planned |

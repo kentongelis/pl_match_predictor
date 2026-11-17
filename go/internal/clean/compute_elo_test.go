@@ -188,3 +188,59 @@ func TestComputeEloRejectsBadInput(t *testing.T) {
 		}
 	}
 }
+
+// TestComputeEloNoLookahead is ComputeElo's half of the leakage test: a rating dated d may only depend on
+// matches played on or before d. For every row, it recomputes Elo from just those matches and expects the same
+// value. A start-of-season row is dated the day before the opener but needs the opening day's matches to know
+// who's in the new season, so it gets them too. Its value must still not depend on how they finished.
+func TestComputeEloNoLookahead(t *testing.T) {
+	matches := twoSeasons(t)
+	full, err := ComputeElo(matches, testElo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	openers := map[string]time.Time{} // first match date of each season
+	for _, m := range matches {
+		if d, ok := openers[m.Season]; !ok || m.Date.Before(d) {
+			openers[m.Season] = m.Date
+		}
+	}
+	isOpener := func(d time.Time) bool {
+		for _, o := range openers {
+			if o.Equal(d) {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, r := range full {
+		upTo := r.DateFrom
+		if next := r.DateFrom.AddDate(0, 0, 1); isOpener(next) {
+			upTo = next
+		}
+		var past []Match
+		for _, m := range matches {
+			if !m.Date.After(upTo) {
+				past = append(past, m)
+			}
+		}
+		got, err := ComputeElo(past, testElo)
+		if err != nil {
+			t.Fatal(err)
+		}
+		found := false
+		for _, g := range got {
+			if g.TeamID == r.TeamID && g.DateFrom.Equal(r.DateFrom) {
+				found = true
+				if g.Elo != r.Elo {
+					t.Errorf("%s %s: %v from matches up to %s, %v from all matches", r.TeamID,
+						r.DateFrom.Format("2006-01-02"), g.Elo, upTo.Format("2006-01-02"), r.Elo)
+				}
+			}
+		}
+		if !found {
+			t.Errorf("%s %s: row only exists once later matches are known", r.TeamID, r.DateFrom.Format("2006-01-02"))
+		}
+	}
+}
